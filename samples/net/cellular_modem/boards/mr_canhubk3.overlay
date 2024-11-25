@@ -1,0 +1,30 @@
+/ {
+	aliases {
+		modem = &modem;
+	};
+};
+
+
+/* BG95 */
+&lpuart0 {
+	current-speed = <115200>;
+	// hw-flow-control; It's not activated by default.
+
+	status = "okay";
+
+	modem: modem {
+		compatible = "quectel,bg95";
+		mdm-power-gpios = <&gpioe_l 12 GPIO_ACTIVE_HIGH>;
+		status = "okay";
+	};
+};
+
+&emac0{
+	status = "disabled";
+};
+&mdio0{
+	status = "disabled";
+};
+&phy{
+	status = "disabled";
+};

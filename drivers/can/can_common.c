@@ -268,9 +268,15 @@ static int can_calc_timing_internal(const struct device *dev, struct can_timing 
 		return -EIO;
 	}
 
+
+	LOG_DBG("Bitrate: %d", bitrate);
+	LOG_DBG("Clock: %d", core_clock);
+
 	if (sample_pnt == 0U) {
 		sample_pnt = sample_point_for_bitrate(bitrate);
 	}
+
+	LOG_DBG("sample_pnt: %d", sample_pnt);
 
 	for (prescaler = MAX(core_clock / (total_tq * bitrate), min->prescaler);
 	     prescaler <= max->prescaler;
@@ -387,6 +393,14 @@ int z_impl_can_set_timing(const struct device *dev,
 	const struct can_timing *min = can_get_timing_min(dev);
 	const struct can_timing *max = can_get_timing_max(dev);
 	int err;
+
+	LOG_DBG("Min: %u %u %u %u %u", min->sjw, min->prop_seg, min->phase_seg1,
+		min->phase_seg2, min->prescaler);
+	LOG_DBG("Max: %d %d %d %d %d", max->sjw, max->prop_seg, max->phase_seg1,
+		max->phase_seg2, max->prescaler);
+	LOG_DBG("Timing: %u %u %u %u %u", timing->sjw, timing->prop_seg, timing->phase_seg1,
+		timing->phase_seg2, timing->prescaler);
+
 
 	err = check_timing_in_range(timing, min, max);
 	if (err != 0) {

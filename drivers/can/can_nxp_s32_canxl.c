@@ -976,6 +976,7 @@ static int can_nxp_s32_init(const struct device *dev)
 		LOG_ERR("Failed to enable clock");
 		return err;
 	}
+	// NEED WARNINGS HERE
 
 	k_mutex_init(&data->rx_mutex);
 	k_mutex_init(&data->tx_mutex);

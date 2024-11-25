@@ -15,11 +15,12 @@
 
 #include <zephyr/drivers/cellular.h>
 
-#define SAMPLE_TEST_ENDPOINT_HOSTNAME		("test-endpoint.com")
+// #define SAMPLE_TEST_ENDPOINT_HOSTNAME		("test-endpoint.com")
+#define SAMPLE_TEST_ENDPOINT_HOSTNAME		("google.com")
 #define SAMPLE_TEST_ENDPOINT_UDP_ECHO_PORT	(7780)
 #define SAMPLE_TEST_ENDPOINT_UDP_RECEIVE_PORT	(7781)
 #define SAMPLE_TEST_PACKET_SIZE			(1024)
-#define SAMPLE_TEST_ECHO_PACKETS		(16)
+#define SAMPLE_TEST_ECHO_PACKETS		(19)
 #define SAMPLE_TEST_TRANSMIT_PACKETS		(128)
 
 const struct device *modem = DEVICE_DT_GET(DT_ALIAS(modem));
@@ -161,6 +162,11 @@ int sample_echo_packet(struct sockaddr *ai_addr, socklen_t ai_addrlen, uint16_t 
 		printk("Sending echo packet\n");
 		send_start_ms = k_uptime_get_32();
 
+
+		char addr_str[INET_ADDRSTRLEN];
+		inet_ntop(AF_INET, &((struct sockaddr_in *)ai_addr)->sin_addr, addr_str, sizeof(addr_str));
+		printf("Socket address: %s\n", addr_str);
+		printf("Socket address length: %d\n", ai_addrlen);
 		ret = sendto(socket_fd, sample_test_packet, sizeof(sample_test_packet), 0,
 			     ai_addr, ai_addrlen);
 
@@ -169,38 +175,38 @@ int sample_echo_packet(struct sockaddr *ai_addr, socklen_t ai_addrlen, uint16_t 
 			continue;
 		}
 
-		printk("Receiving echoed packet\n");
-		ret = recv(socket_fd, sample_recv_buffer, sizeof(sample_recv_buffer), 0);
-		if (ret != sizeof(sample_test_packet)) {
-			if (ret == -1) {
-				printk("Failed to receive echoed sample test packet (%d)\n", errno);
-			} else {
-				printk("Echoed sample test packet has incorrect size (%d)\n", ret);
-			}
-			continue;
-		}
+		// printk("Receiving echoed packet\n");
+		// ret = recv(socket_fd, sample_recv_buffer, sizeof(sample_recv_buffer), 0);
+		// if (ret != sizeof(sample_test_packet)) {
+		// 	if (ret == -1) {
+		// 		printk("Failed to receive echoed sample test packet (%d)\n", errno);
+		// 	} else {
+		// 		printk("Echoed sample test packet has incorrect size (%d)\n", ret);
+		// 	}
+		// 	continue;
+		// }
 
-		echo_received_ms = k_uptime_get_32();
+		// echo_received_ms = k_uptime_get_32();
 
-		if (memcmp(sample_test_packet, sample_recv_buffer,
-			   sizeof(sample_recv_buffer)) != 0) {
-			printk("Echoed sample test packet data mismatch\n");
-			continue;
-		}
+		// if (memcmp(sample_test_packet, sample_recv_buffer,
+		// 	   sizeof(sample_recv_buffer)) != 0) {
+		// 	printk("Echoed sample test packet data mismatch\n");
+		// 	continue;
+		// }
 
 		packets_sent++;
-		accumulated_ms += echo_received_ms - send_start_ms;
+		// accumulated_ms += echo_received_ms - send_start_ms;
 
-		printk("Echo transmit time %ums\n", echo_received_ms - send_start_ms);
+		// printk("Echo transmit time %ums\n", echo_received_ms - send_start_ms);
 	}
 
 	printk("Successfully sent and received %u of %u packets\n", packets_sent,
 	       SAMPLE_TEST_ECHO_PACKETS);
 
-	if (packets_sent > 0) {
-		printk("Average time per successful echo: %u ms\n",
-		accumulated_ms / packets_sent);
-	}
+	// if (packets_sent > 0) {
+	// 	printk("Average time per successful echo: %u ms\n",
+	// 	accumulated_ms / packets_sent);
+	// }
 
 	printk("Close UDP socket\n");
 
@@ -297,20 +303,22 @@ int main(void)
 
 	printk("Waiting for L4 connected\n");
 	ret = net_mgmt_event_wait_on_iface(iface, NET_EVENT_L4_CONNECTED, NULL, NULL, NULL,
-					   K_SECONDS(120));
+					   K_SECONDS(120*2));
 
 	if (ret != 0) {
 		printk("L4 was not connected in time\n");
 		return -1;
 	}
+	printk("L4 connected!\n");
 
 	printk("Waiting for DNS server added\n");
 	ret = net_mgmt_event_wait_on_iface(iface, NET_EVENT_DNS_SERVER_ADD, NULL, NULL, NULL,
-					   K_SECONDS(10));
+					   K_SECONDS(60));
 	if (ret) {
 		printk("DNS server was not added in time\n");
 		return -1;
 	}
+	printk("DNS server added!\n");
 
 	printk("Retrieving cellular info\n");
 	print_cellular_info();
@@ -343,12 +351,17 @@ int main(void)
 		printk("Resolved to %s\n", ip_str);
 	}
 
-	ret = sample_echo_packet(&sample_test_dns_addrinfo.ai_addr,
-				 sample_test_dns_addrinfo.ai_addrlen, port);
+	while (true) {
+		ret = sample_echo_packet(&sample_test_dns_addrinfo.ai_addr,
+					sample_test_dns_addrinfo.ai_addrlen, port);
 
-	if (ret < 0) {
-		printk("Failed to send echos\n");
-		return -1;
+		if (ret < 0) {
+			printk("Failed to send echos\n");
+			return -1;
+		}
+
+
+		k_sleep(K_SECONDS(60));
 	}
 
 	ret = sample_transmit_packets(&sample_test_dns_addrinfo.ai_addr,

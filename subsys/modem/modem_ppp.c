@@ -217,6 +217,7 @@ static void modem_ppp_process_received_byte(struct modem_ppp *ppp, uint8_t byte)
 		if (modem_ppp_is_byte_expected(byte, 0xFF)) {
 			ppp->receive_state = MODEM_PPP_RECEIVE_STATE_HDR_7D;
 		} else {
+			LOG_ERR("HERE: %d", __LINE__);
 			ppp->receive_state = MODEM_PPP_RECEIVE_STATE_HDR_SOF;
 		}
 		break;
@@ -225,6 +226,7 @@ static void modem_ppp_process_received_byte(struct modem_ppp *ppp, uint8_t byte)
 		if (modem_ppp_is_byte_expected(byte, MODEM_PPP_CODE_ESCAPE)) {
 			ppp->receive_state = MODEM_PPP_RECEIVE_STATE_HDR_23;
 		} else {
+			LOG_ERR("HERE: %d", __LINE__);
 			ppp->receive_state = MODEM_PPP_RECEIVE_STATE_HDR_SOF;
 		}
 		break;
@@ -244,6 +246,7 @@ static void modem_ppp_process_received_byte(struct modem_ppp *ppp, uint8_t byte)
 			ppp->receive_state = MODEM_PPP_RECEIVE_STATE_WRITING;
 			net_pkt_cursor_init(ppp->rx_pkt);
 		} else {
+			LOG_ERR("HERE: %d", __LINE__);
 			ppp->receive_state = MODEM_PPP_RECEIVE_STATE_HDR_SOF;
 		}
 
@@ -555,6 +558,7 @@ void modem_ppp_release(struct modem_ppp *ppp)
 	k_work_cancel_sync(&ppp->send_work, &sync);
 	k_work_cancel_sync(&ppp->process_work, &sync);
 	ppp->pipe = NULL;
+	LOG_ERR("HERE: %d", __LINE__);
 	ppp->receive_state = MODEM_PPP_RECEIVE_STATE_HDR_SOF;
 
 	if (ppp->rx_pkt != NULL) {

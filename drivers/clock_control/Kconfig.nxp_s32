@@ -11,7 +11,7 @@ config CLOCK_CONTROL_NXP_S32
 if CLOCK_CONTROL_NXP_S32
 
 config CLOCK_CONTROL_NXP_S32_CLOCK_CONFIG_IDX
-	int
+	int "Clock configuration index"
 	default 0
 	help
 	  This option specifies the zero-based index of the clock configuration
