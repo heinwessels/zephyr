@@ -54,22 +54,22 @@ static inline bool is_section_cmd(const union shell_cmd_entry *entry)
 
 /* Calculates relative line number of given position in buffer */
 static uint32_t line_num_with_buffer_offset_get(struct shell_multiline_cons *cons,
-					     uint16_t buffer_pos)
+						 uint16_t buffer_pos)
 {
 	return ((buffer_pos + cons->name_len) / cons->terminal_wid);
 }
 
 /* Calculates column number of given position in buffer */
 static uint32_t col_num_with_buffer_offset_get(struct shell_multiline_cons *cons,
-					    uint16_t buffer_pos)
+						uint16_t buffer_pos)
 {
 	/* columns are counted from 1 */
 	return (1 + ((buffer_pos + cons->name_len) % cons->terminal_wid));
 }
 
 int32_t z_column_span_with_buffer_offsets_get(struct shell_multiline_cons *cons,
-					      uint16_t offset1,
-					      uint16_t offset2)
+						  uint16_t offset1,
+						  uint16_t offset2)
 {
 	return col_num_with_buffer_offset_get(cons, offset2)
 			- col_num_with_buffer_offset_get(cons, offset1);
@@ -207,7 +207,7 @@ static char make_argv(char **ppcmd, uint8_t c)
 
 
 char z_shell_make_argv(size_t *argc, const char **argv, char *cmd,
-		       uint8_t max_argc)
+			   uint8_t max_argc)
 {
 	char quote = 0;
 	char c;
@@ -507,12 +507,12 @@ static const struct device *shell_device_internal(size_t idx,
 
 	while (dev < dev_end) {
 		if (device_is_ready(dev)
-		    && (dev->name != NULL)
-		    && (strlen(dev->name) != 0)
-		    && ((prefix == NULL)
+			&& (dev->name != NULL)
+			&& (strlen(dev->name) != 0)
+			&& ((prefix == NULL)
 			|| (strncmp(prefix, dev->name,
-				    strlen(prefix)) == 0))
-		    && (filter == NULL || filter(dev))) {
+					strlen(prefix)) == 0))
+			&& (filter == NULL || filter(dev))) {
 			if (match_idx == idx) {
 				return dev;
 			}
@@ -600,6 +600,24 @@ unsigned long long shell_strtoull(const char *str, int base, int *err)
 
 	errno = 0;
 	val = strtoull(str, &endptr, base);
+	if (errno == ERANGE) {
+		*err = -ERANGE;
+		return 0;
+	} else if (errno || endptr == str || *endptr) {
+		*err = -EINVAL;
+		return 0;
+	}
+
+	return val;
+}
+
+double shell_strtod(const char* str, int* err) {
+	double val = 0;
+	char* endptr = nullptr;
+	*err = 0;
+
+	errno = 0;
+	val = strtod(str, &endptr);
 	if (errno == ERANGE) {
 		*err = -ERANGE;
 		return 0;

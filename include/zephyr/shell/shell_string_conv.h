@@ -65,6 +65,22 @@ unsigned long shell_strtoul(const char *str, int base, int *err);
  */
 unsigned long long shell_strtoull(const char *str, int base, int *err);
 
+/** @brief String to double conversion with error check.
+ *
+ * @warning On success the passed err reference will not be altered
+ * to avoid err check bloating. Passed err reference should be initialized
+ * to zero.
+ *
+ * @param str Input string.
+ * @param err Error code pointer:
+ *         Set to -EINVAL on invalid string input.
+ *         Set to -ERANGE if numeric string input is to large to convert.
+ *         Unchanged on success.
+ *
+ * @return Converted double
+ */
+unsigned double shell_strtod(const char *str, int *err);
+
 /** @brief String to boolean conversion with error check.
  *
  * @warning On success the passed err reference will not be altered
